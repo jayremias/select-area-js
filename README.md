@@ -1,2 +1,2 @@
 # select-area-js
-Select Area Scrip
+Select Area Script
