@@ -5,8 +5,10 @@ export function selectArea(selector, options = {}) {
   let x2 = 0;
   let y2 = 0;
   let isShiftPressed = false;
+  let isCtrlPressed = false;
   let defaultOptions = {
     onSelect: async (selectedElements) => {},
+    onAddSelect: async (selectedElements) => {},
   };
 
   init();
@@ -24,17 +26,27 @@ export function selectArea(selector, options = {}) {
     document.body.onmousedown = startSelection;
     document.body.onmouseup = stopSelection;
     document.body.onmousemove = moveSelection;
-    document.body.onkeydown = shiftKeyListener;
-    document.body.onkeyup = shiftKeyListener;
+    document.body.onkeydown = keysListener;
+    document.body.onkeyup = keysListener;
   }
 
-  function shiftKeyListener(e) {
+  function keysListener(e) {
+    if (e.key === 'Control' && e.type === 'keydown') {
+      e.preventDefault();
+      document.body.style.cursor = 'copy';
+      isCtrlPressed = true;
+    } else if (e.key === 'Control' && e.type === 'keyup') {
+      e.preventDefault();
+      document.body.style.cursor = '';
+      isCtrlPressed = false;
+    }
     if (e.key === 'Shift' && e.type === 'keydown') {
       e.preventDefault();
       isShiftPressed = true;
     } else if (e.key === 'Shift' && e.type === 'keyup') {
       e.preventDefault();
       isShiftPressed = false;
+      selectAreaElement.hidden = 1;
     }
   }
 
@@ -71,8 +83,13 @@ export function selectArea(selector, options = {}) {
         elementsInSelection.push(selectable);
       }
     }
+    if (isCtrlPressed) {
+      defaultOptions.onAddSelect && (await defaultOptions.onAddSelect(elementsInSelection));
+    } else {
+      defaultOptions.onSelect && (await defaultOptions.onSelect(elementsInSelection));
+    }
+
     selectAreaElement.hidden = 1;
-    defaultOptions.onSelect && (await defaultOptions.onSelect(elementsInSelection));
   }
 
   function startSelection(e) {
